@@ -5,6 +5,7 @@
 
 
 var IActivityDiagram = Java.type('com.change_vision.jude.api.inf.model.IActivityDiagram');
+var IControlNode = Java.type('com.change_vision.jude.api.inf.model.IControlNode');
 var HashMap = Java.type('java.util.HashMap');
 
 var INDENT_STR = 'A'; //2 spaces
@@ -73,6 +74,9 @@ function run() {
 }
 
 function isRhombus(node) {
+    if (node instanceof IControlNode && node.isDecisionMergeNode()) {
+        return true;
+    }
     var stereotypes = node.getStereotypes();
     return stereotypes.length > 0 && "judgement".equals(stereotypes[0]);
 }
