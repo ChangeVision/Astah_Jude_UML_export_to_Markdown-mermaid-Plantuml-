@@ -40,6 +40,12 @@ function run() {
         }
     }
 
+    Collections.sort(lifelinePresentations, new Comparator() {
+        compare: function ( a, b ) {
+            return a.getLocation().getX() - b.getLocation().getX();
+        }
+    });
+
     var lifelineNames = new HashMap();
     for (var i in lifelinePresentations) {
         var lifeline = lifelinePresentations[i].getModel();
