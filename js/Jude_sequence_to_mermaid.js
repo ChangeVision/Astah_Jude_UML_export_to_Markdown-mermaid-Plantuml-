@@ -3,14 +3,14 @@
 //  E-mail:      cz_666@qq.com
 //  License: APACHE V2.0 (see license file)
 
-importPackage(com.change_vision.jude.api.inf.model);
+var ISequenceDiagram = Java.type('com.change_vision.jude.api.inf.model.ISequenceDiagram');
+var ArrayList = Java.type('java.util.ArrayList');
+var Arrays = Java.type('java.util.Arrays');
+var Comparator = Java.type('java.util.Comparator');
+var Collections = Java.type('java.util.Collections');
+var HashMap = Java.type('java.util.HashMap');
 
 run();
-
-function sortNumber(a, b) {
-//    print((a.getIndex()) + '-' + (b.getIndex())+'='+ (parseInt(a.getIndex()*10) - parseInt(b.getIndex()*10)) + '\n' );
-    return parseInt(a.getIndex() * 10) - parseInt(b.getIndex() * 10);
-}
 
 function run() {
 
@@ -23,72 +23,67 @@ function run() {
         return;
     }
 
+    print(diagram + ' Sequence');
+    print('```mermaid');
+    print('sequenceDiagram;');
 
-    print(diagram + ' Sequence\n');
-    print('```mermaid\n sequenceDiagram;\n');
-    // print(diagram.isFlowChart() )
-    var lifelines = diagram.getInteraction().getLifelines();
-    var gates = diagram.getInteraction().getGates();
-    var msgs = diagram.getInteraction().getMessages();
+    var presentations = diagram.getPresentations();
 
-    var objnames = new Array();
-    var objs = new Array();
-    var m = 0;
+    var interaction = diagram.getInteraction();
+    var lifelines = interaction.getLifelines();
 
-    for (var i in lifelines) {
-        // print(lifelines[i].getName() + ":" + lifelines[i].getBase() +": "  );
+    var lifelinePresentations = new ArrayList();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (Arrays.asList(lifelines).contains(presentation.getModel())) {
+            lifelinePresentations.add(presentation);
+        }
+    }
 
-        if (lifelines[i].getBase() != null) {
-            objnames[i] = lifelines[i].getName() + "_" + lifelines[i].getBase();
+    var lifelineNames = new HashMap();
+    for (var i in lifelinePresentations) {
+        var lifeline = lifelinePresentations[i].getModel();
+        if (lifeline.getBase() != null) {
+            lifelineNames.put(lifeline, lifeline.getName() + "_" + lifeline.getBase());
         } else {
-            objnames[i] = lifelines[i].getName();
+            lifelineNames.put(lifeline, lifeline.getName());
         }
-
-        print("participant " + objnames[i] + ';\n');
+        print("participant " + lifelineNames.get(lifeline) + ';');
     }
 
-    //sort msg by index
-    var msgs2 = new Array();
-    var msg_reply = new Array(); //reply message, reply massage  no index
-    var msg_reply_act = new Array();
-    var reply_n = 0;
-    for (var i in msgs) {//find reply message
-        if (msgs[i].isReturnMessage()) {
-            msg_reply[reply_n] = msgs[i];
-            msg_reply_act[reply_n] = msgs[i].getActivator();
-            reply_n++;
+    var msgs = interaction.getMessages();
+    var messagePresentations = new ArrayList();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (Arrays.asList(msgs).contains(presentation.getModel())) {
+            messagePresentations.add(presentation);
         }
     }
 
-    msgs2 = msgs;
-
-    msgs2.sort(sortNumber);
-
-    for (var i in msgs2) {
-        if (msgs2[i] == undefined || msgs[i].isReturnMessage()) {
-            continue;
+    Collections.sort(messagePresentations, new Comparator() {
+        compare: function ( a, b ) {
+            return a.getPoints()[0].getY() - b.getPoints()[0].getY();
         }
+    });
 
-        var m = lifelines.indexOf(msgs2[i].getSource());
-        var n = lifelines.indexOf(msgs2[i].getTarget());
+    for (var i in messagePresentations) {
+        var presentation = messagePresentations[i];
+        var model = presentation.getModel();
+        var source = model.getSource();
+        var target = model.getTarget();
+
         var arrow = "->>";
-        if (msgs2[i].isSynchronous()) {
+        if (model.isSynchronous()) {
             arrow = "->>";
-        }
-
-        if (msgs2[i].isAsynchronous()) {
+        } else if (model.isReturnMessage()) {
+            print(lifelineNames.get(source) + '-->>' + lifelineNames.get(target) + ':' + 'reply.' + model.getName());
+            continue;
+        } else if (model.isAsynchronous()) {
             arrow = "-x";
         }
 
-        print(objnames[m] + arrow + objnames[n] + ':' + msgs2[i].getIndex() + '.' + msgs2[i] + '\n');
+        print(lifelineNames.get(source) + arrow + lifelineNames.get(target) + ':' + model.getIndex() + '.' + model.getName());
 
-        //print reply
-        var k = msg_reply_act.indexOf(msgs2[i]);
-        if (k >= 0) {
-            var m1 = lifelines.indexOf(msg_reply[k].getSource());
-            var n1 = lifelines.indexOf(msg_reply[k].getTarget());
-            print(objnames[m1] + '-->>' + objnames[n1] + ':' + 'reply.' + msg_reply[k] + '\n');
-        }
     }
     print('```');
 
