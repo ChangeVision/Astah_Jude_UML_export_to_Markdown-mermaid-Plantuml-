@@ -2,9 +2,7 @@
 //  Author:      Chen Zhi
 //  E-mail:      cz_666@qq.com
 //  License: APACHE V2.0 (see license file) 
-var depth = 0;
 var INDENT_STR = 'A'; //2 spaces
-var ITEM_MARKER_STR = '* ';
 
 run();
 
