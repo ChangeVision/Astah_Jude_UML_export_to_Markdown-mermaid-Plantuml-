@@ -3,8 +3,9 @@
 //  E-mail:      cz_666@qq.com
 //  License: APACHE V2.0 (see license file) 
 
-importPackage(com.change_vision.jude.api.inf.model);
-importPackage(java.util);
+
+var IActivityDiagram = Java.type('com.change_vision.jude.api.inf.model.IActivityDiagram');
+var HashMap = Java.type('java.util.HashMap');
 
 var INDENT_STR = 'A'; //2 spaces
 
@@ -24,8 +25,9 @@ function run() {
         return;
     }
 
-    print(diagram + ' Flowchart\n');
-    print('```mermaid\ngraph TB\n');
+    print(diagram + ' Flowchart');
+    print('```mermaid');
+    print('graph TB');
 
     var activity = diagram.getActivity();
 
@@ -42,9 +44,9 @@ function run() {
         var node = activityNodes[i];
         var nodeId = activityNodeIds.get(node);
         if (isRhombus(node)) {
-            print(nodeId + "{" + node.getName() + "};\n");
+            print(nodeId + "{" + node.getName() + "};");
         } else {
-            print(nodeId + "[" + node.getName() + "];\n");
+            print(nodeId + "[" + node.getName() + "];");
         }
     }
 
@@ -60,11 +62,11 @@ function run() {
         if (targetId == null) {
             continue;
         }
-        print(sourceId + "-->");
         if (flow.getGuard() != "") {
-            print("|" + flow.getGuard() + "| ");
+            print(sourceId + "-->|" + flow.getGuard() + "| " + targetId + ";");
+            continue;
         }
-        print(targetId + ";\n");
+        print(sourceId + "-->" + targetId + ";");
     }
     print('```');
 
