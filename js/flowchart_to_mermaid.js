@@ -29,15 +29,8 @@ function run() {
         var flow_obj = diagram.getActivity().getActivityNodes();
         for (var i in flow_obj) {
             flow_names[i] = INDENT_STR + i;
-            var type = "flow_process";
-
-            var stereotypes = flow_obj[i].getStereotypes();
-            if (stereotypes.length == 1) {
-                type = stereotypes[0];
-                // print(type);
-            }
             //print object define
-            if (type == "judgement") {
+            if (isRhombus(flow_obj[i])) {
                 print(INDENT_STR + i + "{" + flow_obj[i] + "};\n");
             } else {
                 print(INDENT_STR + i + "[" + flow_obj[i] + "];\n");
@@ -58,4 +51,9 @@ function run() {
         }
         print('```');
     }
+}
+
+function isRhombus(node) {
+    var stereotypes = node.getStereotypes();
+    return stereotypes.length > 0 && "judgement".equals(stereotypes[0]);
 }
