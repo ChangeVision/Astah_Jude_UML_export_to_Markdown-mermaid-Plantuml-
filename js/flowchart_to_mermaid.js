@@ -4,6 +4,7 @@
 //  License: APACHE V2.0 (see license file) 
 
 importPackage(com.change_vision.jude.api.inf.model);
+importPackage(java.util);
 
 var INDENT_STR = 'A'; //2 spaces
 
@@ -25,31 +26,45 @@ function run() {
 
     print(diagram + ' Flowchart\n');
     print('```mermaid\ngraph TB\n');
-    // print(diagram.isFlowChart() )
-    var flow = diagram.getActivity().getFlows();
-    var flow_names = new Array();
-    var flow_obj = diagram.getActivity().getActivityNodes();
-    for (var i in flow_obj) {
-        flow_names[i] = INDENT_STR + i;
-        //print object define
-        if (isRhombus(flow_obj[i])) {
-            print(INDENT_STR + i + "{" + flow_obj[i] + "};\n");
+
+    var activity = diagram.getActivity();
+
+    var activityNodeIds = new HashMap();
+    var activityNodes = activity.getActivityNodes();
+    for (var i in activityNodes) {
+        var nodeId = INDENT_STR + i;
+        var node = activityNodes[i];
+        activityNodeIds.put(node, nodeId);
+    }
+
+    //print object define
+    for (var i in activityNodes) {
+        var node = activityNodes[i];
+        var nodeId = activityNodeIds.get(node);
+        if (isRhombus(node)) {
+            print(nodeId + "{" + node.getName() + "};\n");
         } else {
-            print(INDENT_STR + i + "[" + flow_obj[i] + "];\n");
+            print(nodeId + "[" + node.getName() + "];\n");
         }
     }
 
     //print flowchart logic
-    for (var i in flow) {
-        var m = flow_obj.indexOf(flow[i].getSource());
-        var n = flow_obj.indexOf(flow[i].getTarget());
-        if (n >= 0) {
-            print(flow_names[m] + "-->");
-            if (flow[i].getGuard() != "") {
-                print("|" + flow[i].getGuard() + "| ");
-            }
-            print(flow_names[n] + ";\n");
+    var flows = activity.getFlows();
+    for (var i in flows) {
+        var flow = flows[i];
+        var sourceId = activityNodeIds.get(flow.getSource());
+        if (sourceId == null) {
+            continue;
         }
+        var targetId = activityNodeIds.get(flow.getTarget());
+        if (targetId == null) {
+            continue;
+        }
+        print(sourceId + "-->");
+        if (flow.getGuard() != "") {
+            print("|" + flow.getGuard() + "| ");
+        }
+        print(targetId + ";\n");
     }
     print('```');
 
