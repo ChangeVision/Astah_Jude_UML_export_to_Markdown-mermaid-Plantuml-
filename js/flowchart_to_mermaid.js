@@ -26,21 +26,31 @@ function run() {
         return;
     }
 
+    var activity = diagram.getActivity();
+    var activityNodes = activity.getActivityNodes();
+    var activityNodeIds = getActivityNodeIds(activityNodes);
+    var flows = activity.getFlows();
+
     print(diagram + ' Flowchart');
     print('```mermaid');
     print('graph TB');
+    printObjectDefine(activityNodes, activityNodeIds);
+    printFlowchartLogic(flows, activityNodeIds);
+    print('```');
 
-    var activity = diagram.getActivity();
+}
 
+function getActivityNodeIds(activityNodes) {
     var activityNodeIds = new HashMap();
-    var activityNodes = activity.getActivityNodes();
     for (var i in activityNodes) {
         var nodeId = ID_PREFIX + i;
         var node = activityNodes[i];
         activityNodeIds.put(node, nodeId);
     }
+    return activityNodeIds;
+}
 
-    //print object define
+function printObjectDefine(activityNodes, activityNodeIds) {
     for (var i in activityNodes) {
         var node = activityNodes[i];
         var nodeId = activityNodeIds.get(node);
@@ -50,9 +60,10 @@ function run() {
             print(nodeId + "[" + node.getName() + "];");
         }
     }
+}
 
-    //print flowchart logic
-    var flows = activity.getFlows();
+function printFlowchartLogic(flows, activityNodeIds) {
+
     for (var i in flows) {
         var flow = flows[i];
         var sourceId = activityNodeIds.get(flow.getSource());
@@ -69,8 +80,6 @@ function run() {
         }
         print(sourceId + "-->" + targetId + ";");
     }
-    print('```');
-
 }
 
 function isRhombus(node) {
