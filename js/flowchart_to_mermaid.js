@@ -56,10 +56,14 @@ function printObjectDefine(activityNodes, activityNodeIds) {
         var node = activityNodes[i];
         var nodeId = activityNodeIds.get(node);
         if (isRhombus(node)) {
-            print(nodeId + "{" + replaceUnavailableCharacters(node.getName()) + "};");
-        } else {
-            print(nodeId + "[" + replaceUnavailableCharacters(node.getName()) + "];");
+            print(nodeId + '{' + replaceUnavailableCharacters(node.getName()) + '};');
+            continue;
         }
+        if (isRectangle(node)) {
+            print(nodeId + '[' + replaceUnavailableCharacters(node.getName()) + '];');
+            continue;
+        }
+        print(nodeId + '(' + replaceUnavailableCharacters(node.getName()) + ');');
     }
 }
 
@@ -105,5 +109,10 @@ function isRhombus(node) {
         return true;
     }
     var stereotypes = node.getStereotypes();
-    return stereotypes.length > 0 && "judgement".equals(stereotypes[0]);
+    return stereotypes.length > 0 && 'judgement'.equals(stereotypes[0]);
+}
+
+function isRectangle(node) {
+    var stereotypes = node.getStereotypes();
+    return stereotypes.length > 0 && 'flow_process'.equals(stereotypes[0]);
 }
