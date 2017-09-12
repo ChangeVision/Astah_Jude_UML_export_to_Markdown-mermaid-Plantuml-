@@ -57,14 +57,14 @@ function printObjectDefine(activityNodes, activityNodeIds) {
         var node = activityNodes[i];
         var nodeId = activityNodeIds.get(node);
         if (isRhombus(node)) {
-            print(INDENT + nodeId + '{' + replaceUnavailableCharacters(node.getName()) + '};');
+            print(INDENT + nodeId + '{' + replaceUnavailableCharacters(node.getName()) + '}');
             continue;
         }
         if (isRectangle(node)) {
-            print(INDENT + nodeId + '[' + replaceUnavailableCharacters(node.getName()) + '];');
+            print(INDENT + nodeId + '[' + replaceUnavailableCharacters(node.getName()) + ']');
             continue;
         }
-        print(INDENT + nodeId + '(' + replaceUnavailableCharacters(node.getName()) + ');');
+        print(INDENT + nodeId + '(' + replaceUnavailableCharacters(node.getName()) + ')');
     }
 }
 
@@ -98,10 +98,10 @@ function printFlowchartLogic(flows, activityNodeIds) {
             continue;
         }
         if (flow.getGuard() != "") {
-            print(INDENT + sourceId + "-->|" + replaceUnavailableCharacters(flow.getGuard()) + "| " + targetId + ";");
+            print(INDENT + sourceId + "-->|" + replaceUnavailableCharacters(flow.getGuard()) + "| " + targetId);
             continue;
         }
-        print(INDENT + sourceId + "-->" + targetId + ";");
+        print(INDENT + sourceId + "-->" + targetId);
     }
 }
 
