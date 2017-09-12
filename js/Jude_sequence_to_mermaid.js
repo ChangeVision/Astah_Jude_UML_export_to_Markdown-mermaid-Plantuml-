@@ -10,6 +10,8 @@ var Comparator = Java.type('java.util.Comparator');
 var Collections = Java.type('java.util.Collections');
 var HashMap = Java.type('java.util.HashMap');
 
+var INDENT = '    ';
+
 run();
 
 function run() {
@@ -83,7 +85,7 @@ function printLifelines(lifelinePresentations, lifelineNames) {
 
     for (var i in lifelinePresentations) {
         var lifeline = lifelinePresentations[i].getModel();
-        print('participant ' + lifelineNames.get(lifeline) + ';');
+        print(INDENT + 'participant ' + lifelineNames.get(lifeline) + ';');
     }
 
 }
@@ -120,7 +122,7 @@ function printMessages(messagePresentations, lifelineNames) {
         var source = model.getSource();
         var target = model.getTarget();
 
-        print(lifelineNames.get(source) + getArrowString(model)
+        print(INDENT + lifelineNames.get(source) + getArrowString(model)
                 + lifelineNames.get(target) + ':' + getIndexString(model) + '.' + model.getName());
 
     }
