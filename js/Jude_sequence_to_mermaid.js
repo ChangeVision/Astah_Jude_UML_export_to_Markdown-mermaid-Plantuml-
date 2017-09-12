@@ -27,6 +27,19 @@ function run() {
     print('```mermaid');
     print('sequenceDiagram;');
 
+    var lifelinePresentations = getLifelinePresentations(diagram);
+    var lifelineNames = getLifelineNames(lifelinePresentations);
+    printLifelines(lifelinePresentations, lifelineNames);
+
+    var messagePresentations = getMessagePresentations(diagram);
+    printMessages(messagePresentations, lifelineNames);
+
+    print('```');
+
+}
+
+function getLifelinePresentations(diagram) {
+
     var presentations = diagram.getPresentations();
 
     var interaction = diagram.getInteraction();
@@ -46,6 +59,12 @@ function run() {
         }
     });
 
+    return lifelinePresentations;
+
+}
+
+function getLifelineNames(lifelinePresentations) {
+
     var lifelineNames = new HashMap();
     for (var i in lifelinePresentations) {
         var lifeline = lifelinePresentations[i].getModel();
@@ -54,11 +73,27 @@ function run() {
         } else {
             lifelineNames.put(lifeline, lifeline.getName());
         }
+    }
+
+    return lifelineNames;
+
+}
+
+function printLifelines(lifelinePresentations, lifelineNames) {
+
+    for (var i in lifelinePresentations) {
+        var lifeline = lifelinePresentations[i].getModel();
         print("participant " + lifelineNames.get(lifeline) + ';');
     }
 
+}
+
+function getMessagePresentations(diagram) {
+
+    var interaction = diagram.getInteraction();
     var msgs = interaction.getMessages();
     var messagePresentations = new ArrayList();
+    var presentations = diagram.getPresentations();
     for (var i in presentations) {
         var presentation = presentations[i];
         if (Arrays.asList(msgs).contains(presentation.getModel())) {
@@ -72,7 +107,14 @@ function run() {
         }
     });
 
+    return messagePresentations;
+
+}
+
+function printMessages(messagePresentations, lifelineNames) {
+
     for (var i in messagePresentations) {
+
         var presentation = messagePresentations[i];
         var model = presentation.getModel();
         var source = model.getSource();
@@ -87,10 +129,8 @@ function run() {
         } else if (model.isAsynchronous()) {
             arrow = "-x";
         }
-
         print(lifelineNames.get(source) + arrow + lifelineNames.get(target) + ':' + model.getIndex() + '.' + model.getName());
 
     }
-    print('```');
 
 }
