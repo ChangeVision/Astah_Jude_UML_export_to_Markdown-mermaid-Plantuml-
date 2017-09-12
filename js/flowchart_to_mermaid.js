@@ -8,7 +8,7 @@ var IActivityDiagram = Java.type('com.change_vision.jude.api.inf.model.IActivity
 var IControlNode = Java.type('com.change_vision.jude.api.inf.model.IControlNode');
 var HashMap = Java.type('java.util.HashMap');
 
-var INDENT_STR = 'A'; //2 spaces
+var ID_PREFIX = 'A';
 
 run();
 
@@ -35,7 +35,7 @@ function run() {
     var activityNodeIds = new HashMap();
     var activityNodes = activity.getActivityNodes();
     for (var i in activityNodes) {
-        var nodeId = INDENT_STR + i;
+        var nodeId = ID_PREFIX + i;
         var node = activityNodes[i];
         activityNodeIds.put(node, nodeId);
     }
