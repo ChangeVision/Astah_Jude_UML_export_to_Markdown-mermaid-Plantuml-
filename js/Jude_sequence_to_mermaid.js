@@ -69,7 +69,7 @@ function getLifelineNames(lifelinePresentations) {
     for (var i in lifelinePresentations) {
         var lifeline = lifelinePresentations[i].getModel();
         if (lifeline.getBase() != null) {
-            lifelineNames.put(lifeline, lifeline.getName() + "_" + lifeline.getBase());
+            lifelineNames.put(lifeline, lifeline.getName() + '_' + lifeline.getBase());
         } else {
             lifelineNames.put(lifeline, lifeline.getName());
         }
@@ -83,7 +83,7 @@ function printLifelines(lifelinePresentations, lifelineNames) {
 
     for (var i in lifelinePresentations) {
         var lifeline = lifelinePresentations[i].getModel();
-        print("participant " + lifelineNames.get(lifeline) + ';');
+        print('participant ' + lifelineNames.get(lifeline) + ';');
     }
 
 }
@@ -120,17 +120,33 @@ function printMessages(messagePresentations, lifelineNames) {
         var source = model.getSource();
         var target = model.getTarget();
 
-        var arrow = "->>";
-        if (model.isSynchronous()) {
-            arrow = "->>";
-        } else if (model.isReturnMessage()) {
-            print(lifelineNames.get(source) + '-->>' + lifelineNames.get(target) + ':' + 'reply.' + model.getName());
-            continue;
-        } else if (model.isAsynchronous()) {
-            arrow = "-x";
-        }
-        print(lifelineNames.get(source) + arrow + lifelineNames.get(target) + ':' + model.getIndex() + '.' + model.getName());
+        print(lifelineNames.get(source) + getArrowString(model)
+                + lifelineNames.get(target) + ':' + getIndexString(model) + '.' + model.getName());
 
     }
+
+}
+
+function getIndexString(model) {
+
+    if (model.isReturnMessage()) {
+        return 'reply';
+    }
+
+    return model.getIndex();
+
+}
+
+function getArrowString(model) {
+
+    if (model.isReturnMessage()) {
+        return '-->>';
+    }
+
+    if (model.isAsynchronous()) {
+        return '-x';
+    }
+
+    return '->>';
 
 }
