@@ -9,6 +9,7 @@ var IControlNode = Java.type('com.change_vision.jude.api.inf.model.IControlNode'
 var HashMap = Java.type('java.util.HashMap');
 
 var ID_PREFIX = 'A';
+var REPLACEMENT_CHAR = '?';
 
 run();
 
@@ -55,11 +56,28 @@ function printObjectDefine(activityNodes, activityNodeIds) {
         var node = activityNodes[i];
         var nodeId = activityNodeIds.get(node);
         if (isRhombus(node)) {
-            print(nodeId + "{" + node.getName() + "};");
+            print(nodeId + "{" + replaceUnavailableCharacters(node.getName()) + "};");
         } else {
-            print(nodeId + "[" + node.getName() + "];");
+            print(nodeId + "[" + replaceUnavailableCharacters(node.getName()) + "];");
         }
     }
+}
+
+function replaceUnavailableCharacters(string) {
+
+    var newString = string.replace(/\n/g, ' ');
+
+    newString = newString.replace(/\(/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\)/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\[/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\]/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\{/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\}/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\;/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\|/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/E/g, REPLACEMENT_CHAR);
+
+    return newString;
 }
 
 function printFlowchartLogic(flows, activityNodeIds) {
@@ -75,7 +93,7 @@ function printFlowchartLogic(flows, activityNodeIds) {
             continue;
         }
         if (flow.getGuard() != "") {
-            print(sourceId + "-->|" + flow.getGuard() + "| " + targetId + ";");
+            print(sourceId + "-->|" + replaceUnavailableCharacters(flow.getGuard()) + "| " + targetId + ";");
             continue;
         }
         print(sourceId + "-->" + targetId + ";");
