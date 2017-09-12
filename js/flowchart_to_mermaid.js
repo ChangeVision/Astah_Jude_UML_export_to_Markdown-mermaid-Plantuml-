@@ -10,6 +10,7 @@ var HashMap = Java.type('java.util.HashMap');
 
 var ID_PREFIX = 'A';
 var REPLACEMENT_CHAR = '?';
+var INDENT = '    ';
 
 run();
 
@@ -56,14 +57,14 @@ function printObjectDefine(activityNodes, activityNodeIds) {
         var node = activityNodes[i];
         var nodeId = activityNodeIds.get(node);
         if (isRhombus(node)) {
-            print(nodeId + '{' + replaceUnavailableCharacters(node.getName()) + '};');
+            print(INDENT + nodeId + '{' + replaceUnavailableCharacters(node.getName()) + '};');
             continue;
         }
         if (isRectangle(node)) {
-            print(nodeId + '[' + replaceUnavailableCharacters(node.getName()) + '];');
+            print(INDENT + nodeId + '[' + replaceUnavailableCharacters(node.getName()) + '];');
             continue;
         }
-        print(nodeId + '(' + replaceUnavailableCharacters(node.getName()) + ');');
+        print(INDENT + nodeId + '(' + replaceUnavailableCharacters(node.getName()) + ');');
     }
 }
 
@@ -97,10 +98,10 @@ function printFlowchartLogic(flows, activityNodeIds) {
             continue;
         }
         if (flow.getGuard() != "") {
-            print(sourceId + "-->|" + replaceUnavailableCharacters(flow.getGuard()) + "| " + targetId + ";");
+            print(INDENT + sourceId + "-->|" + replaceUnavailableCharacters(flow.getGuard()) + "| " + targetId + ";");
             continue;
         }
-        print(sourceId + "-->" + targetId + ";");
+        print(INDENT + sourceId + "-->" + targetId + ";");
     }
 }
 
