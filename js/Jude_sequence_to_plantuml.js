@@ -12,6 +12,10 @@ function orderOfMessagePosition(a, b) {
     return a.getPoints()[0].getY() - b.getPoints()[0].getY();
 }
 
+function orderOfLifelinePosition(a, b) {
+    return a.getLocation().getX() - b.getLocation().getX();
+}
+
 function run() {
 
     var diagramViewManager = astah.getViewManager().getDiagramViewManager();
@@ -24,14 +28,26 @@ function run() {
 
     // print(diagram + ' Sequence\n');
     print('@startuml\n');
-    // print(diagram.isFlowChart() )
-    var lifelines = diagram.getInteraction().getLifelines();
 
     var presentations = diagram.getPresentations();
 
+    var lifelinePresentations = new Array();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (presentation.getModel() instanceof ILifeline) {
+            lifelinePresentations[i] = presentation;
+        }
+    }
+
+    lifelinePresentations.sort(orderOfLifelinePosition);
+
     var lifelineNames = new HashMap();
-    for (var i in lifelines) {
-        var lifeline = lifelines[i];
+    for (var i in lifelinePresentations) {
+        var lifelineP = lifelinePresentations[i];
+        if (lifelineP == undefined) {
+            continue;
+        }
+        var lifeline = lifelineP.getModel();
         if (lifeline.getBase() != null) {
             lifelineNames.put(lifeline, lifeline.getName() + "_" + lifeline.getBase().getName());
         } else {
