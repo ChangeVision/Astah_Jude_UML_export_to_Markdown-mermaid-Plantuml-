@@ -8,14 +8,6 @@ importPackage(java.util);
 
 run();
 
-function orderOfMessagePosition(a, b) {
-    return a.getPoints()[0].getY() - b.getPoints()[0].getY();
-}
-
-function orderOfLifelinePosition(a, b) {
-    return a.getLocation().getX() - b.getLocation().getX();
-}
-
 function run() {
 
     var diagramViewManager = astah.getViewManager().getDiagramViewManager();
@@ -26,19 +18,13 @@ function run() {
         return;
     }
 
-    // print(diagram + ' Sequence\n');
-    print('@startuml\n');
-
     var presentations = diagram.getPresentations();
-
     var lifelinePresentations = getLifelinePresentations(presentations);
-
     var lifelineNames = getLifelineNames(lifelinePresentations);
-
-    printLifeline(lifelinePresentations, lifelineNames);
-
     var messagePresentations = getMassagePresentations(presentations);
 
+    print('@startuml\n');
+    printLifeline(lifelinePresentations, lifelineNames);
     printMessages(messagePresentations, lifelineNames);
     print('@enduml');
 
@@ -55,6 +41,10 @@ function getLifelinePresentations(presentations) {
 
     lifelinePresentations.sort(orderOfLifelinePosition);
     return lifelinePresentations;
+}
+
+function orderOfLifelinePosition(a, b) {
+    return a.getLocation().getX() - b.getLocation().getX();
 }
 
 function getLifelineNames(lifelinePresentations) {
@@ -96,6 +86,10 @@ function getMassagePresentations(presentations) {
 
     messagePresentations.sort(orderOfMessagePosition);
     return messagePresentations;
+}
+
+function orderOfMessagePosition(a, b) {
+    return a.getPoints()[0].getY() - b.getPoints()[0].getY();
 }
 
 function printMessages(messagePresentations, lifelineNames) {
