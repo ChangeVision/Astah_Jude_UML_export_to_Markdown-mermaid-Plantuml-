@@ -3,8 +3,10 @@
 //  E-mail:      cz_666@qq.com
 //  License: APACHE V2.0 (see license file)
 
-importPackage(com.change_vision.jude.api.inf.model);
-importPackage(java.util);
+var ISequenceDiagram = Java.type('com.change_vision.jude.api.inf.model.ISequenceDiagram');
+var ILifeline = Java.type('com.change_vision.jude.api.inf.model.ILifeline');
+var IMessage = Java.type('com.change_vision.jude.api.inf.model.IMessage');
+var HashMap = Java.type('java.util.HashMap');
 
 run();
 
@@ -23,7 +25,7 @@ function run() {
     var lifelineNames = getLifelineNames(lifelinePresentations);
     var messagePresentations = getMassagePresentations(presentations);
 
-    print('@startuml\n');
+    print('@startuml');
     printLifeline(lifelinePresentations, lifelineNames);
     printMessages(messagePresentations, lifelineNames);
     print('@enduml');
@@ -71,7 +73,7 @@ function printLifeline(lifelinePresentations, lifelineNames) {
             continue;
         }
         var lifeline = lifelineP.getModel();
-        print("participant " + lifelineNames.get(lifeline) + '\n');
+        print("participant " + lifelineNames.get(lifeline));
     }
 }
 
@@ -103,7 +105,7 @@ function printMessages(messagePresentations, lifelineNames) {
         var sourceName = lifelineNames.get(message.getSource());
         var targetName = lifelineNames.get(message.getTarget());
 
-        print(sourceName + getArrow(message) + targetName + ':' + getText(message) + '\n');
+        print(sourceName + getArrow(message) + targetName + ':' + getText(message));
 
     }
 }
