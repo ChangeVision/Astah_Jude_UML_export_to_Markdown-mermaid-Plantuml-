@@ -106,31 +106,32 @@ function printMessages(messagePresentations, lifelineNames) {
         }
 
         var message = messageP.getModel();
-        var arrow = " -> ";
-        if (message.isSynchronous()) {
-            arrow = " -> ";
-        }
-        if (message.isAsynchronous()) {
-            arrow = " ->> ";
-        }
-        if (message.isReturnMessage()) {
-            arrow = " -->> ";
-        }
-
-        var index = message.getIndex();
-        if (message.isReturnMessage()) {
-            index = "reply";
-        }
-
-        var messageName = message.getName();
-        if (messageName == null) {
-            messageName = "";
-        }
-
         var sourceName = lifelineNames.get(message.getSource());
         var targetName = lifelineNames.get(message.getTarget());
 
-        print(sourceName + arrow + targetName + ':' + index + '.' + messageName + '\n');
+        print(sourceName + getArrow(message) + targetName + ':' + getText(message) + '\n');
 
     }
+}
+
+function getArrow(message) {
+    if (message.isReturnMessage()) {
+        return " -->> ";
+    }
+    if (message.isAsynchronous()) {
+        return " ->> ";
+    }
+    return " -> ";
+}
+
+function getText(message) {
+    var index = message.getIndex();
+    if (message.isReturnMessage()) {
+        index = "reply";
+    }
+    var messageName = message.getName();
+    if (messageName == null) {
+        messageName = "";
+    }
+    return index + '.' + messageName;
 }
