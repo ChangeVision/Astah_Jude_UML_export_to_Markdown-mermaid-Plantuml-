@@ -7,9 +7,8 @@ importPackage(com.change_vision.jude.api.inf.model);
 
 run();
 
-function sortNumber(a, b) {
-    // print((a.getIndex()) + '-' + (b.getIndex())+'='+ (parseInt(a.getIndex()*10) - parseInt(b.getIndex()*10)) + '\n' ); 
-    return parseInt(a.getIndex() * 10) - parseInt(b.getIndex() * 10);
+function orderOfMessagePosition(a, b) {
+    return a.getPoints()[0].getY() - b.getPoints()[0].getY();
 }
 
 function run() {
@@ -26,7 +25,8 @@ function run() {
     print('@startuml\n');
     // print(diagram.isFlowChart() )
     var lifelines = diagram.getInteraction().getLifelines();
-    var msgs = diagram.getInteraction().getMessages();
+
+    var presentations = diagram.getPresentations();
 
     var objnames = new Array();
     for (var i in lifelines) {
@@ -41,48 +41,49 @@ function run() {
         print("participant " + objnames[i] + '\n');
     }
 
-    // sort msg by index
-    var msgs2 = new Array();
-    var msg_reply = new Array(); // reply message, reply massage  no index
-    var msg_reply_act = new Array();
-    var reply_n = 0;
-    for (var i in msgs) {// find reply message
-        if (msgs[i].isReturnMessage()) {
-            msg_reply[reply_n] = msgs[i];
-            msg_reply_act[reply_n] = msgs[i].getActivator();
-            reply_n++;
+    var messagePresentations = new Array();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (presentation.getModel() instanceof IMessage) {
+            messagePresentations[i] = presentation;
         }
     }
 
-    msgs2 = msgs;
+    messagePresentations.sort(orderOfMessagePosition);
 
-    msgs2.sort(sortNumber);
-
-    for (var i in msgs2) {
-        if (msgs2[i] == undefined || msgs[i].isReturnMessage()) {
+    for (var i in messagePresentations) {
+        var messageP = messagePresentations[i];
+        if (messageP == undefined) {
             continue;
         }
 
-        var m = lifelines.indexOf(msgs2[i].getSource());
-        var n = lifelines.indexOf(msgs2[i].getTarget());
+        var message = messageP.getModel();
+
+        var m = lifelines.indexOf(message.getSource());
+        var n = lifelines.indexOf(message.getTarget());
         var arrow = " -> ";
-        if (msgs2[i].isSynchronous()) {
+        if (message.isSynchronous()) {
             arrow = " -> ";
         }
-
-        if (msgs2[i].isAsynchronous()) {
+        if (message.isAsynchronous()) {
             arrow = " ->> ";
         }
-
-        print(objnames[m] + arrow + objnames[n] + ':' + msgs2[i].getIndex() + '.' + msgs2[i] + '\n');
-
-        // print reply
-        var k = msg_reply_act.indexOf(msgs2[i]);
-        if (k >= 0) {
-            var m1 = lifelines.indexOf(msg_reply[k].getSource());
-            var n1 = lifelines.indexOf(msg_reply[k].getTarget());
-            print(objnames[m1] + ' -->> ' + objnames[n1] + ':' + 'reply.' + msg_reply[k] + '\n');
+        if (message.isReturnMessage()) {
+            arrow = " -->> ";
         }
+
+        var index = message.getIndex();
+        if (message.isReturnMessage()) {
+            index = "reply";
+        }
+
+        var messageName = message.getName();
+        if (messageName == null) {
+            messageName = "";
+        }
+
+        print(objnames[m] + arrow + objnames[n] + ':' + index + '.' + messageName + '\n');
+
     }
     print('@enduml');
 
