@@ -4,6 +4,7 @@
 //  License: APACHE V2.0 (see license file)
 
 importPackage(com.change_vision.jude.api.inf.model);
+importPackage(java.util);
 
 run();
 
@@ -28,17 +29,16 @@ function run() {
 
     var presentations = diagram.getPresentations();
 
-    var objnames = new Array();
+    var lifelineNames = new HashMap();
     for (var i in lifelines) {
-        // print(lifelines[i].getName() + ":" + lifelines[i].getBase() +": "  );
-
-        if (lifelines[i].getBase() != null) {
-            objnames[i] = lifelines[i].getName() + "_" + lifelines[i].getBase();
+        var lifeline = lifelines[i];
+        if (lifeline.getBase() != null) {
+            lifelineNames.put(lifeline, lifeline.getName() + "_" + lifeline.getBase().getName());
         } else {
-            objnames[i] = lifelines[i].getName();
+            lifelineNames.put(lifeline, lifeline.getName());
         }
 
-        print("participant " + objnames[i] + '\n');
+        print("participant " + lifelineNames.get(lifeline) + '\n');
     }
 
     var messagePresentations = new Array();
@@ -58,9 +58,6 @@ function run() {
         }
 
         var message = messageP.getModel();
-
-        var m = lifelines.indexOf(message.getSource());
-        var n = lifelines.indexOf(message.getTarget());
         var arrow = " -> ";
         if (message.isSynchronous()) {
             arrow = " -> ";
@@ -82,7 +79,10 @@ function run() {
             messageName = "";
         }
 
-        print(objnames[m] + arrow + objnames[n] + ':' + index + '.' + messageName + '\n');
+        var sourceName = lifelineNames.get(message.getSource());
+        var targetName = lifelineNames.get(message.getTarget());
+
+        print(sourceName + arrow + targetName + ':' + index + '.' + messageName + '\n');
 
     }
     print('@enduml');
