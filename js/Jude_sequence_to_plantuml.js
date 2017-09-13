@@ -31,6 +31,20 @@ function run() {
 
     var presentations = diagram.getPresentations();
 
+    var lifelinePresentations = getLifelinePresentations(presentations);
+
+    var lifelineNames = getLifelineNames(lifelinePresentations);
+
+    printLifeline(lifelinePresentations, lifelineNames);
+
+    var messagePresentations = getMassagePresentations(presentations);
+
+    printMessages(messagePresentations, lifelineNames);
+    print('@enduml');
+
+}
+
+function getLifelinePresentations(presentations) {
     var lifelinePresentations = new Array();
     for (var i in presentations) {
         var presentation = presentations[i];
@@ -40,7 +54,10 @@ function run() {
     }
 
     lifelinePresentations.sort(orderOfLifelinePosition);
+    return lifelinePresentations;
+}
 
+function getLifelineNames(lifelinePresentations) {
     var lifelineNames = new HashMap();
     for (var i in lifelinePresentations) {
         var lifelineP = lifelinePresentations[i];
@@ -53,10 +70,22 @@ function run() {
         } else {
             lifelineNames.put(lifeline, lifeline.getName());
         }
+    }
+    return lifelineNames;
+}
 
+function printLifeline(lifelinePresentations, lifelineNames) {
+    for (var i in lifelinePresentations) {
+        var lifelineP = lifelinePresentations[i];
+        if (lifelineP == undefined) {
+            continue;
+        }
+        var lifeline = lifelineP.getModel();
         print("participant " + lifelineNames.get(lifeline) + '\n');
     }
+}
 
+function getMassagePresentations(presentations) {
     var messagePresentations = new Array();
     for (var i in presentations) {
         var presentation = presentations[i];
@@ -66,7 +95,10 @@ function run() {
     }
 
     messagePresentations.sort(orderOfMessagePosition);
+    return messagePresentations;
+}
 
+function printMessages(messagePresentations, lifelineNames) {
     for (var i in messagePresentations) {
         var messageP = messagePresentations[i];
         if (messageP == undefined) {
@@ -101,6 +133,4 @@ function run() {
         print(sourceName + arrow + targetName + ':' + index + '.' + messageName + '\n');
 
     }
-    print('@enduml');
-
 }
