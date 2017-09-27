@@ -1,110 +1,154 @@
-//  This script convert Astah SequenceDiagram to mermaid fomat text 
+//  This script convert Astah SequenceDiagram to mermaid fomat text
 //  Author:      Chen Zhi
 //  E-mail:      cz_666@qq.com
-//  License: APACHE V2.0 (see license file) 
-var depth = 0;
-var INDENT_STR = 'A'; //2 spaces
-var ITEM_MARKER_STR = '* ';
+//  License: APACHE V2.0 (see license file)
+
+var ISequenceDiagram = Java.type('com.change_vision.jude.api.inf.model.ISequenceDiagram');
+var ArrayList = Java.type('java.util.ArrayList');
+var Arrays = Java.type('java.util.Arrays');
+var Comparator = Java.type('java.util.Comparator');
+var Collections = Java.type('java.util.Collections');
+var HashMap = Java.type('java.util.HashMap');
+
+var INDENT = '    ';
 
 run();
 
-function sortNumber(a, b)
-{
-//    print((a.getIndex()) + '-' + (b.getIndex())+'='+ (parseInt(a.getIndex()*10) - parseInt(b.getIndex()*10)) + '\n' ); 
-    return  parseInt(a.getIndex()*10) - parseInt(b.getIndex()*10);
+function run() {
+
+    var diagramViewManager = astah.getViewManager().getDiagramViewManager();
+    var diagram = diagramViewManager.getCurrentDiagram();
+
+
+    if (!(diagram instanceof ISequenceDiagram)) {
+        print('Open a ISequenceDiagram and run again.');
+        return;
+    }
+
+    print(diagram + ' Sequence');
+    print('```mermaid');
+    print('sequenceDiagram;');
+
+    var lifelinePresentations = getLifelinePresentations(diagram);
+    var lifelineNames = getLifelineNames(lifelinePresentations);
+    printLifelines(lifelinePresentations, lifelineNames);
+
+    var messagePresentations = getMessagePresentations(diagram);
+    printMessages(messagePresentations, lifelineNames);
+
+    print('```');
+
 }
 
-function run() {
-    with(new JavaImporter(
-            com.change_vision.jude.api.inf.model)) {
-        var diagramViewManager = astah.getViewManager().getDiagramViewManager();
-        var diagram = diagramViewManager.getCurrentDiagram();
+function getLifelinePresentations(diagram) {
 
+    var presentations = diagram.getPresentations();
 
-       if (!(diagram instanceof ISequenceDiagram)) 
-       {
-           print('Open a ISequenceDiagram and run again.');
-           return;
-       }
+    var interaction = diagram.getInteraction();
+    var lifelines = interaction.getLifelines();
 
-
-         print(diagram + ' Sequence\n');
-         print('```mermaid\n sequenceDiagram;\n');
-       // print(diagram.isFlowChart() )
-        var lifelines = diagram.getInteraction().getLifelines();
-        var gates = diagram.getInteraction().getGates();
-        var msgs= diagram.getInteraction().getMessages();
-
-        var objnames = new Array();
-        var objs = new Array();
-        var m = 0;
-        
-         for (var i in lifelines) 
-         {
-            // print(lifelines[i].getName() + ":" + lifelines[i].getBase() +": "  );
-
-             if( lifelines[i].getBase()!= null )
-             {
-                objnames[i] = lifelines[i].getName() + "_" + lifelines[i].getBase();
-             }
-             else
-             {
-                 objnames[i] = lifelines[i].getName();
-             }
-     
-              print( "participant "+ objnames[i] +';\n' );
-         }
-
-        //sort msg by index
-        var msgs2 = new Array();
-        var msg_reply = new Array(); //reply message, reply massage  no index
-        var msg_reply_act = new Array();
-        var reply_n = 0;
-        for (var i in msgs) 
-         {//find reply message
-                if( msgs[i].isReturnMessage() )
-                {
-                       msg_reply[reply_n] = msgs[i];
-                       msg_reply_act[reply_n] =  msgs[i].getActivator();
-                       reply_n++;
-                }
-         }
-
-         msgs2 = msgs;
-    
-     msgs2.sort(sortNumber) ;
-
-         for (var i in msgs2) 
-         {
-             if(msgs2[i] == undefined || msgs[i].isReturnMessage() )
-             {
-                 continue;
-             }
-
-            var m = lifelines.indexOf(msgs2[i].getSource() );
-            var n = lifelines.indexOf(msgs2[i].getTarget() );
-            var arrow = "->>" ;
-            if( msgs2[i].isSynchronous() )
-            {
-                arrow = "->>" ;
-            }
-            
-            if( msgs2[i].isAsynchronous() )
-            {
-                 arrow = "-x" ;
-            }
-
-            print( objnames[m] + arrow +objnames[n] + ':'+ msgs2[i].getIndex()+'.'+ msgs2[i] +'\n');
-
-            //print reply
-            var k = msg_reply_act.indexOf(msgs2[i] );
-            if(k >=0 )
-            {
-                var m1 = lifelines.indexOf(msg_reply[k].getSource() );
-                var n1 = lifelines.indexOf(msg_reply[k].getTarget() );
-                print( objnames[m1] + '-->>' +objnames[n1] + ':'+ 'reply.'+ msg_reply[k] +'\n');                
-            }
-         }
-         print('```');
+    var lifelinePresentations = new ArrayList();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (Arrays.asList(lifelines).contains(presentation.getModel())) {
+            lifelinePresentations.add(presentation);
+        }
     }
+
+    Collections.sort(lifelinePresentations, new Comparator() {
+        compare: function ( a, b ) {
+            return a.getLocation().getX() - b.getLocation().getX();
+        }
+    });
+
+    return lifelinePresentations;
+
+}
+
+function getLifelineNames(lifelinePresentations) {
+
+    var lifelineNames = new HashMap();
+    for (var i in lifelinePresentations) {
+        var lifeline = lifelinePresentations[i].getModel();
+        if (lifeline.getBase() != null) {
+            lifelineNames.put(lifeline, lifeline.getName() + '_' + lifeline.getBase());
+        } else {
+            lifelineNames.put(lifeline, lifeline.getName());
+        }
+    }
+
+    return lifelineNames;
+
+}
+
+function printLifelines(lifelinePresentations, lifelineNames) {
+
+    for (var i in lifelinePresentations) {
+        var lifeline = lifelinePresentations[i].getModel();
+        print(INDENT + 'participant ' + lifelineNames.get(lifeline) + ';');
+    }
+
+}
+
+function getMessagePresentations(diagram) {
+
+    var interaction = diagram.getInteraction();
+    var msgs = interaction.getMessages();
+    var messagePresentations = new ArrayList();
+    var presentations = diagram.getPresentations();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (Arrays.asList(msgs).contains(presentation.getModel())) {
+            messagePresentations.add(presentation);
+        }
+    }
+
+    Collections.sort(messagePresentations, new Comparator() {
+        compare: function ( a, b ) {
+            return a.getPoints()[0].getY() - b.getPoints()[0].getY();
+        }
+    });
+
+    return messagePresentations;
+
+}
+
+function printMessages(messagePresentations, lifelineNames) {
+
+    for (var i in messagePresentations) {
+
+        var presentation = messagePresentations[i];
+        var model = presentation.getModel();
+        var source = model.getSource();
+        var target = model.getTarget();
+
+        print(INDENT + lifelineNames.get(source) + getArrowString(model)
+                + lifelineNames.get(target) + ':' + getIndexString(model) + '.' + model.getName());
+
+    }
+
+}
+
+function getIndexString(model) {
+
+    if (model.isReturnMessage()) {
+        return 'reply';
+    }
+
+    return model.getIndex();
+
+}
+
+function getArrowString(model) {
+
+    if (model.isReturnMessage()) {
+        return '-->>';
+    }
+
+    if (model.isAsynchronous()) {
+        return '-x';
+    }
+
+    return '->>';
+
 }
