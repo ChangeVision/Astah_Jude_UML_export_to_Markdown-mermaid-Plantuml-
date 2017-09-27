@@ -2,72 +2,118 @@
 //  Author:      Chen Zhi
 //  E-mail:      cz_666@qq.com
 //  License: APACHE V2.0 (see license file) 
-var depth = 0;
-var INDENT_STR = 'A'; //2 spaces
-var ITEM_MARKER_STR = '* ';
+
+
+var IActivityDiagram = Java.type('com.change_vision.jude.api.inf.model.IActivityDiagram');
+var IControlNode = Java.type('com.change_vision.jude.api.inf.model.IControlNode');
+var HashMap = Java.type('java.util.HashMap');
+
+var ID_PREFIX = 'A';
+var REPLACEMENT_CHAR = '?';
+var INDENT = '    ';
 
 run();
 
 function run() {
-    with(new JavaImporter(
-            com.change_vision.jude.api.inf.model)) {
-        var diagramViewManager = astah.getViewManager().getDiagramViewManager();
-        var diagram = diagramViewManager.getCurrentDiagram();
-       if (!(diagram instanceof IActivityDiagram)) 
-       {
-           print('Open a flowchart and run again.');
-           return;
-       }
 
-        if (!(diagram.isFlowChart() )) 
-       {
-           print('Open a flowchart and run again.');
-           return;
-       }
-
-         print(diagram + ' Flowchart\n');
-         print('```mermaid\ngraph TB\n');
-       // print(diagram.isFlowChart() )
-        var flow = diagram.getActivity().getFlows();
-        var flow_names = new Array();
-        var flow_obj = diagram.getActivity().getActivityNodes();
-         for (var i in flow_obj) 
-         {
-            flow_names[i] = INDENT_STR+i;
-            var type = "flow_process";
-
-            var stereotypes=flow_obj[i].getStereotypes();
-            if(stereotypes.length == 1)
-            {
-                type = stereotypes[0];
-               // print(type);
-            }
-            //print object define
-            if(type == "judgement")
-            {
-                print(INDENT_STR+i+"{" +flow_obj[i] + "};\n"  );                
-            }
-            else
-            {
-                print(INDENT_STR+i+"[" +flow_obj[i] + "];\n"  );    
-            }
-         }
-        
-
-        //print flowchart logic
-        for (var i in flow) {
-            var m = flow_obj.indexOf(flow[i].getSource() );
-            var n = flow_obj.indexOf(flow[i].getTarget() );
-            if(n >= 0)
-            {
-                print(flow_names[m] +"-->"  );
-                if(flow[i].getGuard() != "" )
-                {
-                    print("|"+ flow[i].getGuard() +"| " );
-                }
-            print( flow_names[n] +";\n"   );            
-            }
-        }
-         print('```');
+    var diagramViewManager = astah.getViewManager().getDiagramViewManager();
+    var diagram = diagramViewManager.getCurrentDiagram();
+    if (!(diagram instanceof IActivityDiagram)) {
+        print('Open a flowchart and run again.');
+        return;
     }
+
+    if (!(diagram.isFlowChart())) {
+        print('Open a flowchart and run again.');
+        return;
+    }
+
+    var activity = diagram.getActivity();
+    var activityNodes = activity.getActivityNodes();
+    var activityNodeIds = getActivityNodeIds(activityNodes);
+    var flows = activity.getFlows();
+
+    print(diagram + ' Flowchart');
+    print('```mermaid');
+    print('graph TB');
+    printObjectDefine(activityNodes, activityNodeIds);
+    printFlowchartLogic(flows, activityNodeIds);
+    print('```');
+
+}
+
+function getActivityNodeIds(activityNodes) {
+    var activityNodeIds = new HashMap();
+    for (var i in activityNodes) {
+        var nodeId = ID_PREFIX + i;
+        var node = activityNodes[i];
+        activityNodeIds.put(node, nodeId);
+    }
+    return activityNodeIds;
+}
+
+function printObjectDefine(activityNodes, activityNodeIds) {
+    for (var i in activityNodes) {
+        var node = activityNodes[i];
+        var nodeId = activityNodeIds.get(node);
+        if (isRhombus(node)) {
+            print(INDENT + nodeId + '{' + replaceUnavailableCharacters(node.getName()) + '}');
+            continue;
+        }
+        if (isRectangle(node)) {
+            print(INDENT + nodeId + '[' + replaceUnavailableCharacters(node.getName()) + ']');
+            continue;
+        }
+        print(INDENT + nodeId + '(' + replaceUnavailableCharacters(node.getName()) + ')');
+    }
+}
+
+function replaceUnavailableCharacters(string) {
+
+    var newString = string.replace(/\n/g, ' ');
+
+    newString = newString.replace(/\(/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\)/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\[/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\]/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\{/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\}/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\;/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/\|/g, REPLACEMENT_CHAR);
+    newString = newString.replace(/E/g, REPLACEMENT_CHAR);
+
+    return newString;
+}
+
+function printFlowchartLogic(flows, activityNodeIds) {
+
+    for (var i in flows) {
+        var flow = flows[i];
+        var sourceId = activityNodeIds.get(flow.getSource());
+        if (sourceId == null) {
+            continue;
+        }
+        var targetId = activityNodeIds.get(flow.getTarget());
+        if (targetId == null) {
+            continue;
+        }
+        if (flow.getGuard() != "") {
+            print(INDENT + sourceId + "-->|" + replaceUnavailableCharacters(flow.getGuard()) + "| " + targetId);
+            continue;
+        }
+        print(INDENT + sourceId + "-->" + targetId);
+    }
+}
+
+function isRhombus(node) {
+    if (node instanceof IControlNode && node.isDecisionMergeNode()) {
+        return true;
+    }
+    var stereotypes = node.getStereotypes();
+    return stereotypes.length > 0 && 'judgement'.equals(stereotypes[0]);
+}
+
+function isRectangle(node) {
+    var stereotypes = node.getStereotypes();
+    return stereotypes.length > 0 && 'flow_process'.equals(stereotypes[0]);
 }
