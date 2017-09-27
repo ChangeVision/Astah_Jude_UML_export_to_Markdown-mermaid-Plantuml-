@@ -1,110 +1,133 @@
-//  This script convert Astah SequenceDiagram to plantuml fomat text 
+//  This script convert Astah SequenceDiagram to plantuml fomat text
 //  Author:      Chen Zhi
 //  E-mail:      cz_666@qq.com
-//  License: APACHE V2.0 (see license file) 
-var depth = 0;
-var INDENT_STR = 'A'; //2 spaces
-var ITEM_MARKER_STR = '* ';
+//  License: APACHE V2.0 (see license file)
+
+var ISequenceDiagram = Java.type('com.change_vision.jude.api.inf.model.ISequenceDiagram');
+var ILifeline = Java.type('com.change_vision.jude.api.inf.model.ILifeline');
+var IMessage = Java.type('com.change_vision.jude.api.inf.model.IMessage');
+var HashMap = Java.type('java.util.HashMap');
 
 run();
 
-function sortNumber(a, b)
-{
-//    print((a.getIndex()) + '-' + (b.getIndex())+'='+ (parseInt(a.getIndex()*10) - parseInt(b.getIndex()*10)) + '\n' ); 
-    return  parseInt(a.getIndex()*10) - parseInt(b.getIndex()*10);
+function run() {
+
+    var diagramViewManager = astah.getViewManager().getDiagramViewManager();
+    var diagram = diagramViewManager.getCurrentDiagram();
+
+    if (!(diagram instanceof ISequenceDiagram)) {
+        print('Open a ISequenceDiagram and run again.');
+        return;
+    }
+
+    var presentations = diagram.getPresentations();
+    var lifelinePresentations = getLifelinePresentations(presentations);
+    var lifelineNames = getLifelineNames(lifelinePresentations);
+    var messagePresentations = getMassagePresentations(presentations);
+
+    print('@startuml');
+    printLifeline(lifelinePresentations, lifelineNames);
+    printMessages(messagePresentations, lifelineNames);
+    print('@enduml');
+
 }
 
-function run() {
-    with(new JavaImporter(
-            com.change_vision.jude.api.inf.model)) {
-        var diagramViewManager = astah.getViewManager().getDiagramViewManager();
-        var diagram = diagramViewManager.getCurrentDiagram();
-
-
-       if (!(diagram instanceof ISequenceDiagram)) 
-       {
-           print('Open a ISequenceDiagram and run again.');
-           return;
-       }
-
-
-         //print(diagram + ' Sequence\n');
-         print('@startuml\n');
-       // print(diagram.isFlowChart() )
-        var lifelines = diagram.getInteraction().getLifelines();
-        var gates = diagram.getInteraction().getGates();
-        var msgs= diagram.getInteraction().getMessages();
-
-        var objnames = new Array();
-        var objs = new Array();
-        var m = 0;
-        
-         for (var i in lifelines) 
-         {
-            // print(lifelines[i].getName() + ":" + lifelines[i].getBase() +": "  );
-
-             if( lifelines[i].getBase()!= null )
-             {
-                objnames[i] = lifelines[i].getName() + "_" + lifelines[i].getBase();
-             }
-             else
-             {
-                 objnames[i] = lifelines[i].getName();
-             }
-     
-              print( "participant "+ objnames[i] +'\n' );
-         }
-
-        //sort msg by index
-        var msgs2 = new Array();
-        var msg_reply = new Array(); //reply message, reply massage  no index
-        var msg_reply_act = new Array();
-        var reply_n = 0;
-        for (var i in msgs) 
-         {//find reply message
-                if( msgs[i].isReturnMessage() )
-                {
-                       msg_reply[reply_n] = msgs[i];
-                       msg_reply_act[reply_n] =  msgs[i].getActivator();
-                       reply_n++;
-                }
-         }
-
-         msgs2 = msgs;
-    
-     msgs2.sort(sortNumber) ;
-
-         for (var i in msgs2) 
-         {
-             if(msgs2[i] == undefined || msgs[i].isReturnMessage() )
-             {
-                 continue;
-             }
-
-            var m = lifelines.indexOf(msgs2[i].getSource() );
-            var n = lifelines.indexOf(msgs2[i].getTarget() );
-            var arrow = " -> " ;
-            if( msgs2[i].isSynchronous() )
-            {
-                arrow = " -> " ;
-            }
-            
-            if( msgs2[i].isAsynchronous() )
-            {
-                 arrow = " ->> " ;
-            }
-
-            print( objnames[m] + arrow +objnames[n] + ':'+ msgs2[i].getIndex()+'.'+ msgs2[i] +'\n');
-
-            //print reply
-            var k = msg_reply_act.indexOf(msgs2[i] );
-            if(k >=0 )
-            {
-                var m1 = lifelines.indexOf(msg_reply[k].getSource() );
-                var n1 = lifelines.indexOf(msg_reply[k].getTarget() );
-                print( objnames[m1] + ' -->> ' +objnames[n1] + ':'+ 'reply.'+ msg_reply[k] +'\n');                
-            }
-         }
-         print('@enduml');
+function getLifelinePresentations(presentations) {
+    var lifelinePresentations = new Array();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (presentation.getModel() instanceof ILifeline) {
+            lifelinePresentations[i] = presentation;
+        }
     }
+
+    lifelinePresentations.sort(orderOfLifelinePosition);
+    return lifelinePresentations;
+}
+
+function orderOfLifelinePosition(a, b) {
+    return a.getLocation().getX() - b.getLocation().getX();
+}
+
+function getLifelineNames(lifelinePresentations) {
+    var lifelineNames = new HashMap();
+    for (var i in lifelinePresentations) {
+        var lifelineP = lifelinePresentations[i];
+        if (lifelineP == undefined) {
+            continue;
+        }
+        var lifeline = lifelineP.getModel();
+        if (lifeline.getBase() != null) {
+            lifelineNames.put(lifeline, lifeline.getName() + "_" + lifeline.getBase().getName());
+        } else {
+            lifelineNames.put(lifeline, lifeline.getName());
+        }
+    }
+    return lifelineNames;
+}
+
+function printLifeline(lifelinePresentations, lifelineNames) {
+    for (var i in lifelinePresentations) {
+        var lifelineP = lifelinePresentations[i];
+        if (lifelineP == undefined) {
+            continue;
+        }
+        var lifeline = lifelineP.getModel();
+        print("participant " + lifelineNames.get(lifeline));
+    }
+}
+
+function getMassagePresentations(presentations) {
+    var messagePresentations = new Array();
+    for (var i in presentations) {
+        var presentation = presentations[i];
+        if (presentation.getModel() instanceof IMessage) {
+            messagePresentations[i] = presentation;
+        }
+    }
+
+    messagePresentations.sort(orderOfMessagePosition);
+    return messagePresentations;
+}
+
+function orderOfMessagePosition(a, b) {
+    return a.getPoints()[0].getY() - b.getPoints()[0].getY();
+}
+
+function printMessages(messagePresentations, lifelineNames) {
+    for (var i in messagePresentations) {
+        var messageP = messagePresentations[i];
+        if (messageP == undefined) {
+            continue;
+        }
+
+        var message = messageP.getModel();
+        var sourceName = lifelineNames.get(message.getSource());
+        var targetName = lifelineNames.get(message.getTarget());
+
+        print(sourceName + getArrow(message) + targetName + ':' + getText(message));
+
+    }
+}
+
+function getArrow(message) {
+    if (message.isReturnMessage()) {
+        return " -->> ";
+    }
+    if (message.isAsynchronous()) {
+        return " ->> ";
+    }
+    return " -> ";
+}
+
+function getText(message) {
+    var index = message.getIndex();
+    if (message.isReturnMessage()) {
+        index = "reply";
+    }
+    var messageName = message.getName();
+    if (messageName == null) {
+        messageName = "";
+    }
+    return index + '.' + messageName;
 }
